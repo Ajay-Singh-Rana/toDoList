@@ -17,6 +17,7 @@ mode = "light"
 taskString = ""
 taskButton = ""
 taskButtonsList = []
+toRemoveList =[]
 
 # loading icons
 addButtonIcon = tk.PhotoImage(file="icons/button.png")
@@ -66,9 +67,11 @@ menuItem.add_command(label="Dark Theme",command=dark_theme)
 
 def on_check(taskButton):
     taskButton.configure(command=lambda:on_decheck(taskButton),font=("Helvetica",8,"overstrike"))
+    toRemoveList.append(taskButton)
 
 def on_decheck(taskButton):
     taskButton.configure(command=lambda:on_check(taskButton),font=("Helvetica",8,"bold"))
+    toRemoveList.remove(taskButton)
 
 def add_It(taskEntryBox):
     global taskString
@@ -113,12 +116,17 @@ def add_task():
         addTaskButton.configure(bg="White",fg="Black")
         cancelButton.configure(bg="White",fg="Black")
 
+def remove_it():
+    if(toRemoveList!=[]):
+        for _ in toRemoveList:
+            _.destroy()
+
 # add button 
 addButton = tk.Button(rightFrame,image=addButtonIcon,bg="White",activebackground="White",border=0,command=add_task)
 addButton.pack(side=tk.TOP)
 
 # remove button
-removeButton = tk.Button(rightFrame,image=removeButtonIcon,activebackground="White",bg="White")
+removeButton = tk.Button(rightFrame,image=removeButtonIcon,activebackground="White",bg="White",command=remove_it)
 removeButton.pack(side=tk.TOP)
 
 mainWindow.mainloop()
