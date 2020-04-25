@@ -13,6 +13,7 @@ index = 0
 completedIndex = 0
 mode = "light"
 window_widgets = []
+window_objects = []
 
 # dark mode functionality
 def dark_theme():
@@ -32,7 +33,7 @@ def dark_theme():
     addButton.configure(bg="Black",fg="White")
     deleteButton.configure(bg="Black",fg="White")
     undoButton.configure(bg="Black",fg="White")
-    markAsCompleted.configure(bg="Black",fg="White")
+    completeButton.configure(bg="Black",fg="White")
     emptyButton.configure(bg="Black",fg="White")
     # setting menu to dark mode
     menuItem.config(bg="Black",fg="White")
@@ -56,16 +57,20 @@ def light_theme():
     addButton.configure(bg="White",fg="Black")
     deleteButton.configure(bg="White",fg="Black")
     undoButton.configure(bg="White",fg="Black")
-    markAsCompleted.configure(bg="White",fg="Black")
+    completeButton.configure(bg="White",fg="Black")
     emptyButton.configure(bg="White",fg="Black")
     # setting menu to dark mode
     menuItem.config(bg="White",fg="Black")
     menuItem.entryconfig(1,label="Dark Theme",command=dark_theme)
 
+# help functionality
+def help():
+    print("Help")
+
 # menu for the to do application
 menuItem = tk.Menu(fg="Black",bg="White",activebackground="Purple",activeforeground="Cyan")
 menuItem.add_command(label="Dark Theme",command=dark_theme)
-menuItem.add_command(label="Help")
+menuItem.add_command(label="Help",command=help)
 mainWindow.config(menu = menuItem)
 
 # bottom frame to hold buttons for adding and deleting tasks
@@ -93,8 +98,8 @@ def mark():
         index -= 1
 
 # mark as completed button, goes in left frame
-markAsCompleted = tk.Button(leftFrame,text="Done",fg="Black",bg="White",command=mark,activeforeground="Cyan",activebackground="Purple")
-markAsCompleted.pack(side=tk.BOTTOM,pady=10)
+completeButton = tk.Button(leftFrame,text="Done",fg="Black",bg="White",command=mark,activeforeground="Cyan",activebackground="Purple")
+completeButton.pack(side=tk.BOTTOM,pady=10)
 
 # listbox to hold incomplete tasks,it goes in the leftFrame
 taskBox = tk.Listbox(leftFrame,bg="White",fg="Black",highlightcolor="Dodger Blue",selectbackground="Purple",selectforeground="Cyan")
@@ -132,10 +137,6 @@ rightScroll.pack(fill=tk.Y,side=tk.RIGHT)
 completedTasksBox.configure(yscrollcommand=rightScroll.set)
 rightScroll.configure(command=completedTasksBox.yview)
 
-# fucntion binding for text box
-def on_enter(event):
-    add_task()
-
 # funtionality to add tasks
 def add_task():
     global index
@@ -148,20 +149,39 @@ def add_task():
     window_widgets[0].destroy()
     window_widgets.clear()
 
+# cancel button shortcut
+def cancel_button_shortcut(taskWindow):
+    global window_widgets
+    global window_objects
+    window_objects[-1].destroy()
+    window_objects.pop()
+    window_widgets.pop(-1)
+    window_widgets.pop(-1)
+    
 # pop up window for add button to enter tasks
 def create_task_window():
     global window_widgets
+    global window_objects
+    window_widgets.clear()
+    try:
+        for _ in window_objects:
+            _.destroy()
+    except:
+        pass
     taskWindow = tk.Toplevel()
+    window_objects.append(taskWindow)
     taskWindow.resizable(False,False)
     taskWindow.geometry("200x88")
     taskEntryBox = tk.Text(taskWindow,width=200,height=3)
     taskEntryBox.pack()
-    taskEntryBox.bind("<Return>",on_enter)
+    taskEntryBox.bind("<Return>",lambda e:add_task())
     window_widgets.extend([taskWindow,taskEntryBox])
     addTaskButton = tk.Button(taskWindow,bg="White",fg="Black",text="Add",command=add_task,activeforeground="Cyan",activebackground="Purple")
     addTaskButton.pack(side=tk.LEFT)
     cancelButton = tk.Button(taskWindow,text="Cancel",fg="Black",bg="White",command=taskWindow.destroy,activeforeground="Cyan",activebackground="Purple")
     cancelButton.pack(side=tk.RIGHT)
+    # cancel button shortcut
+    taskWindow.bind_all("<Control-x>",lambda e:cancel_button_shortcut(taskWindow))
     if(mode=="dark"):
         taskWindow.config(bg="Black")
         taskEntryBox.config(bg="Black",fg="White",insertbackground="White")
@@ -193,4 +213,24 @@ deleteButton.pack(side=tk.LEFT,padx=20)
 emptyButton = tk.Button(bottomFrame,text="Empty",bg="White",fg="Black",command=empty_list,activeforeground="Cyan",activebackground="Purple")
 emptyButton.pack(padx=20)
 
+# bindig the respective button with their events
+# empty button shortcut binding
+mainWindow.bind_all("<Control-Shift-D>",lambda e:empty_list())
+
+# add button shortcut binding
+mainWindow.bind_all("<Control-a>",lambda e:create_task_window())
+
+# delete button shortcut binding
+mainWindow.bind_all("<Control-d>",lambda e:delete_task())
+
+# undo button shortcut binding
+mainWindow.bind_all("<Control-z>",lambda e:undo())
+
+# complete button shortcut binding
+mainWindow.bind_all("<Control-c>",lambda e:mark())
+
+# help menu shortcut binding
+mainWindow.bind_all("<F1>",lambda e:help())
+
+# entering mainloop
 mainWindow.mainloop()
